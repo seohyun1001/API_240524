@@ -22,7 +22,7 @@ public class RefreshTokenException extends RuntimeException{
         this.errorCase = errorCase;
     }
 
-    public void sendREsponseError(HttpServletResponse response) {
+    public void sendResponseError(HttpServletResponse response) {
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
