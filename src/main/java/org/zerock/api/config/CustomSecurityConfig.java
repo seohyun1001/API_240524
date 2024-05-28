@@ -20,7 +20,9 @@ import org.springframework.security.web.access.intercept.FilterSecurityIntercept
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.zerock.api.security.APIUserDetailsService;
 import org.zerock.api.security.filter.APILoginFilter;
+import org.zerock.api.security.filter.TokenCheckFilter;
 import org.zerock.api.security.handler.APILoginSuccessHandler;
+import org.zerock.api.util.JWTUtil;
 
 @Configuration
 @Log4j2
@@ -30,6 +32,7 @@ import org.zerock.api.security.handler.APILoginSuccessHandler;
 public class CustomSecurityConfig {
 
     private final APIUserDetailsService apiUserDetailsService;
+    private final JWTUtil jwtUtil;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -61,10 +64,12 @@ public class CustomSecurityConfig {
         APILoginFilter apiLoginFliter = new APILoginFilter("/generateToken");
         apiLoginFliter.setAuthenticationManager(authenticationManager);
 
-        APILoginSuccessHandler successHandler = new APILoginSuccessHandler();
+        APILoginSuccessHandler successHandler = new APILoginSuccessHandler(jwtUtil);
         apiLoginFliter.setAuthenticationSuccessHandler(successHandler);
 
         http.addFilterBefore(apiLoginFliter, UsernamePasswordAuthenticationFilter.class);
+
+        http.addFilterBefore(tokenCheckFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         // CSRF 토큰 비활성화 - 사용하지 않겠다
         http.csrf().disable();
@@ -75,6 +80,9 @@ public class CustomSecurityConfig {
         return http.build();
     }
 
+    private TokenCheckFilter tokenCheckFilter(JWTUtil jwtUtil){
+        return new TokenCheckFilter(jwtUtil);
+    }
 
 
 }
