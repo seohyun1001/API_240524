@@ -64,17 +64,21 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
             return;
         }
 
+        // try문 안에서 선언 변수는 try문 밖에서 사용할 수 없음 -> 밖에서 선언 먼저
         Map<String, Object> refreshClaims = null;
 
         try {
+            // refreshToken의 확인
             refreshClaims = checkRefreshToken(refreshToken);
             log.info(refreshClaims);
 
+            // 토큰의 만료기한을 변수에 저장
             // Refresh Token의 유효 시간이 얼마 남지 않은 경우
             Integer exp = (Integer) refreshClaims.get("exp");
 
+            // Integer 값으로 저장된 만료기한을 시간타입으로 변환
             Date expTime = new Date(Instant.ofEpochMilli(exp).toEpochMilli() * 1000);
-
+            // 현재시간을 밀리세컨드 단위로 취득
             Date current = new Date(System.currentTimeMillis());
 
             // 만료 시간과 현재 시간의 간격 계산
@@ -86,14 +90,15 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
             log.info("expTime : " + expTime);
             log.info("gapTime : " + gapTime);
 
+            // 토큰을 생성할 때 저장할 mid를 취득
             String mid = (String)refreshClaims.get("mid");
 
             // 이 상태까지 오면 무조건 AccessToken은 새로 생성
             String accessTokenValue = jwtUtil.generateToken(Map.of("mid", mid), 1);
-
+            // 기존에 존재하던 refreshToken을 저장
             String refreshTokenValue = tokens.get("refreshToken");
 
-            // RefreshToken이 3일도 안 남았다면
+            // RefreshToken의 gapTime이 3일도 안 남았다면 새로운 refreshToken 생성
             if (gapTime < (1000 * 60 * 60 * 24 * 3)) {
                 log.info("new refresh token required");
                 refreshTokenValue = jwtUtil.generateToken(Map.of("mid", mid), 30);
@@ -103,6 +108,7 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
             log.info("accessToken : " + accessTokenValue);
             log.info("refreshToken : " + refreshTokenValue);
 
+            // 요청페이지에 새로운 토큰들을 보내주는 처리
             sendTokens(accessTokenValue, refreshTokenValue, response);
 
         } catch (RefreshTokenException refreshTokenException) {
@@ -153,12 +159,14 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
 
     private void sendTokens(String accessTokenValue, String refreshTokenValue, HttpServletResponse response) {
 
+        // JSON 타입으로 응답하기 위한 설정
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
+        // 각 토큰을 JSON 형식으로 변환
         Gson gson = new Gson();
-
         String jsonStr = gson.toJson(Map.of("accessToken", accessTokenValue, "refreshToken", refreshTokenValue));
 
+        // response에 토큰들을 설정하여 반환할 수 있도록 만들어줌
         try {
             response.getWriter().println(jsonStr);
         } catch (IOException e) {
