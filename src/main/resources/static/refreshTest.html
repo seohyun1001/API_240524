@@ -23,13 +23,15 @@
 <script src = "https://unpkg.com/axios/dist/axios.min.js"></script>
 
 <script>
-
+    // localStrorage의 토큰 데이터를 변수에 저장
     const oldAccessToken = localStorage.getItem("accessToken")
     const oldRefreshToken = localStorage.getItem("refreshToken")
 
+    // localStorage의 토큰 데이터를 화면에 출력
     document.querySelector(".accessOld").innerHTML = oldAccessToken
     document.querySelector(".refreshOld").innerHTML = oldRefreshToken
 
+    // Refresh 버튼 실행
     document.querySelector(".btn1").addEventListener("click", () => {
 
         axios.post('http://localhost:8080/refreshToken',
