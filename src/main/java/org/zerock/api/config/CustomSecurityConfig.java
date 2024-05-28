@@ -16,10 +16,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.zerock.api.security.APIUserDetailsService;
 import org.zerock.api.security.filter.APILoginFilter;
+import org.zerock.api.security.filter.RefreshTokenFilter;
 import org.zerock.api.security.filter.TokenCheckFilter;
 import org.zerock.api.security.handler.APILoginSuccessHandler;
 import org.zerock.api.util.JWTUtil;
@@ -69,7 +69,12 @@ public class CustomSecurityConfig {
 
         http.addFilterBefore(apiLoginFliter, UsernamePasswordAuthenticationFilter.class);
 
+        // api로 시작하는 모든 경로는 TokenCheckFilter 동작
         http.addFilterBefore(tokenCheckFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+
+        // refreshToken 호출 처리
+        http.addFilterBefore(new RefreshTokenFilter("/refreshToken", jwtUtil),
+                TokenCheckFilter.class);
 
         // CSRF 토큰 비활성화 - 사용하지 않겠다
         http.csrf().disable();
