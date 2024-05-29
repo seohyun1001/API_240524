@@ -17,12 +17,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.zerock.api.security.APIUserDetailsService;
 import org.zerock.api.security.filter.APILoginFilter;
 import org.zerock.api.security.filter.RefreshTokenFilter;
 import org.zerock.api.security.filter.TokenCheckFilter;
 import org.zerock.api.security.handler.APILoginSuccessHandler;
 import org.zerock.api.util.JWTUtil;
+
+import java.util.Arrays;
 
 @Configuration
 @Log4j2
@@ -87,6 +92,18 @@ public class CustomSecurityConfig {
 
     private TokenCheckFilter tokenCheckFilter(JWTUtil jwtUtil){
         return new TokenCheckFilter(jwtUtil);
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
 
