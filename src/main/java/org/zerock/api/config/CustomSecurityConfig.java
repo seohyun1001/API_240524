@@ -75,7 +75,8 @@ public class CustomSecurityConfig {
         http.addFilterBefore(apiLoginFliter, UsernamePasswordAuthenticationFilter.class);
 
         // api로 시작하는 모든 경로는 TokenCheckFilter 동작
-        http.addFilterBefore(tokenCheckFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(tokenCheckFilter(jwtUtil, apiUserDetailsService),
+                UsernamePasswordAuthenticationFilter.class);
 
         // refreshToken 호출 처리
         http.addFilterBefore(new RefreshTokenFilter("/refreshToken", jwtUtil),
@@ -95,8 +96,8 @@ public class CustomSecurityConfig {
         return http.build();
     }
 
-    private TokenCheckFilter tokenCheckFilter(JWTUtil jwtUtil){
-        return new TokenCheckFilter(jwtUtil);
+    private TokenCheckFilter tokenCheckFilter(JWTUtil jwtUtil, APIUserDetailsService apiUserDetailsService){
+        return new TokenCheckFilter(apiUserDetailsService, jwtUtil);
     }
 
     @Bean
@@ -112,7 +113,7 @@ public class CustomSecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
         // 사용할 헤더 설정(설정한 헤더만 사용 가능)
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        // cors 사용 설정
+        // cors 설정을 사용하는
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
