@@ -87,6 +87,11 @@ public class CustomSecurityConfig {
         // 세션을 사용하지 않음
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+        // CORS 설정
+        http.cors(httpSecurityCorsConfigurer -> {
+            httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
+        });
+
         return http.build();
     }
 
@@ -97,9 +102,17 @@ public class CustomSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // 모든 패턴을 허락
+        // Origin : protocol + host + port
+        // protocol : http, https
+        // host : domain(www.naver.com)
+        // port : :80, :8080
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // AJAX 태그에서 실행할 메서드
         configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
+        // 사용할 헤더 설정(설정한 헤더만 사용 가능)
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        // cors 사용 설정
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
